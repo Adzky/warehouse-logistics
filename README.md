@@ -35,9 +35,16 @@ workflows. User authentication is not implemented yet.
 - A PostgreSQL database named `warehouse_logistics`, or an equivalent database
   configured in `src/main/resources/application.properties`
 
-Review the datasource URL, username, and password in
+Review the datasource URL, username, and password, also the active profile in
 `src/main/resources/application.properties` and set them to match your local
 PostgreSQL setup. Do not commit database credentials.
+
+If you run locally, create `application-local.properties` file and define the
+`DB_PASSWORD` variable with your local database password:
+
+```properties
+DB_PASSWORD=YOUR_DB_PASSWORD_HERE
+```
 
 ## Run locally
 
