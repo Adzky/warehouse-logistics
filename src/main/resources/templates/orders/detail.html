@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title th:text="${order.reference} + ' · Orders'">Order</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <p class="muted"><a th:href="@{/orders}">Orders</a></p>
+      <h1 th:text="${order.reference}">SO</h1>
+      <div class="detail-meta">
+        <span class="badge" th:text="${order.status}"></span>
+        <span th:text="${#temporals.formatISO(order.createdAt)}"></span>
+      </div>
+    </div>
+    <div class="actions">
+      <form method="post" th:action="@{/orders/{id}/pick(id=${order.id})}" th:if="${order.status.name() == 'RESERVED'}">
+        <button type="submit">Mark picked</button>
+      </form>
+      <form method="post" th:action="@{/orders/{id}/pack(id=${order.id})}" th:if="${order.status.name() == 'PICKED'}">
+        <button type="submit">Mark packed</button>
+      </form>
+      <form method="post" th:action="@{/orders/{id}/ship(id=${order.id})}"
+            th:if="${order.status.name() == 'PACKED'}"
+            data-confirm="Ship this order and deduct on-hand and reserved stock?">
+        <button type="submit">Ship order</button>
+      </form>
+      <form method="post" th:action="@{/orders/{id}/cancel(id=${order.id})}"
+            th:if="${order.status.name() == 'RESERVED'}"
+            data-confirm="Cancel this order and release reserved stock?">
+        <button class="danger" type="submit">Cancel order</button>
+      </form>
+    </div>
+  </div>
+  <article class="panel">
+    <h2>Lines</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+        <tr><th>SKU</th><th>Product</th><th>Pick location</th><th>Quantity</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="line : ${order.lines}">
+          <td th:text="${line.sku}"></td>
+          <td th:text="${line.productName}"></td>
+          <td th:text="${line.sourceLocationCode}"></td>
+          <td th:text="${line.quantity}"></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+</body>
+</html>

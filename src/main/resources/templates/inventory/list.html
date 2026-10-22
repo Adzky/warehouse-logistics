@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title>Inventory · Warehouse Logistics</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <h1>Inventory by location</h1>
+      <p class="lede">Search balances, receive or move stock, and set reorder points.</p>
+    </div>
+  </div>
+  <form class="panel filters toolbar" method="get" th:action="@{/inventory}" role="search">
+    <div>
+      <label for="q">SKU or location</label>
+      <input id="q" name="q" th:value="${q}">
+    </div>
+    <div>
+      <label for="warehouseId">Warehouse</label>
+      <select id="warehouseId" name="warehouseId">
+        <option value="">All</option>
+        <option th:each="warehouse : ${warehouses}" th:value="${warehouse.id}" th:text="${warehouse.code}"
+                th:selected="${warehouse.id == warehouseId}"></option>
+      </select>
+    </div>
+    <div>
+      <label for="locationId">Location</label>
+      <select id="locationId" name="locationId">
+        <option value="">All</option>
+        <option th:each="location : ${locations}" th:value="${location.id}"
+                th:text="${location.warehouseCode} + ' / ' + ${location.code}"
+                th:selected="${location.id == locationId}"></option>
+      </select>
+    </div>
+    <div>
+      <label for="alertsOnly">Alerts</label>
+      <select id="alertsOnly" name="alertsOnly">
+        <option value="false" th:selected="${!alertsOnly}">All balances</option>
+        <option value="true" th:selected="${alertsOnly}">Below reorder point</option>
+      </select>
+    </div>
+    <div style="align-self:end"><button type="submit">Apply</button></div>
+  </form>
+
+  <article class="panel">
+    <div class="table-wrap" th:if="${!page.items.isEmpty()}">
+      <table>
+        <thead>
+        <tr>
+          <th>SKU</th><th>Product</th><th>Warehouse</th><th>Location</th>
+          <th>On hand</th><th>Reserved</th><th>Available</th><th>Reorder</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${page.items}">
+          <td th:text="${item.sku}"></td>
+          <td th:text="${item.productName}"></td>
+          <td th:text="${item.warehouseCode}"></td>
+          <td th:text="${item.locationCode}"></td>
+          <td th:text="${item.onHand}"></td>
+          <td th:text="${item.reserved}"></td>
+          <td th:text="${item.available}"></td>
+          <td>
+            <span th:text="${item.reorderPoint}"></span>
+            <span class="badge badge-alert" th:if="${item.belowReorderPoint}">Alert</span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="empty" th:if="${page.items.isEmpty()}">No inventory rows match these filters.</p>
+    <div th:replace="~{fragments/pager :: pager}"></div>
+  </article>
+
+  <div class="grid-2" style="margin-top:1rem">
+    <article class="panel">
+      <h2>Receive / put away</h2>
+      <form method="post" th:action="@{/inventory/receive}" th:object="${directReceiveForm}">
+        <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+        <p>
+          <label for="receive-product">Product</label>
+          <select id="receive-product" th:field="*{productId}">
+            <option value="">Select product</option>
+            <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.sku} + ' · ' + ${product.name}"></option>
+          </select>
+          <span class="field-error" th:errors="*{productId}"></span>
+        </p>
+        <p>
+          <label for="receive-location">Destination location</label>
+          <select id="receive-location" th:field="*{locationId}">
+            <option value="">Select location</option>
+            <option th:each="location : ${locations}" th:value="${location.id}"
+                    th:text="${location.warehouseCode} + ' / ' + ${location.code}"></option>
+          </select>
+          <span class="field-error" th:errors="*{locationId}"></span>
+        </p>
+        <p>
+          <label for="receive-qty">Quantity</label>
+          <input id="receive-qty" type="number" min="1" th:field="*{quantity}">
+          <span class="field-error" th:errors="*{quantity}"></span>
+        </p>
+        <p>
+          <label for="receive-ref">Reference</label>
+          <input id="receive-ref" th:field="*{reference}">
+        </p>
+        <button type="submit">Receive stock</button>
+      </form>
+    </article>
+    <article class="panel">
+      <h2>Move stock</h2>
+      <form method="post" th:action="@{/inventory/move}" th:object="${moveStockForm}">
+        <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+        <p>
+          <label for="move-product">Product</label>
+          <select id="move-product" th:field="*{productId}">
+            <option value="">Select product</option>
+            <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.sku} + ' · ' + ${product.name}"></option>
+          </select>
+          <span class="field-error" th:errors="*{productId}"></span>
+        </p>
+        <p>
+          <label for="move-from">From</label>
+          <select id="move-from" th:field="*{sourceLocationId}">
+            <option value="">Select location</option>
+            <option th:each="location : ${locations}" th:value="${location.id}"
+                    th:text="${location.warehouseCode} + ' / ' + ${location.code}"></option>
+          </select>
+          <span class="field-error" th:errors="*{sourceLocationId}"></span>
+        </p>
+        <p>
+          <label for="move-to">To</label>
+          <select id="move-to" th:field="*{destinationLocationId}">
+            <option value="">Select location</option>
+            <option th:each="location : ${locations}" th:value="${location.id}"
+                    th:text="${location.warehouseCode} + ' / ' + ${location.code}"></option>
+          </select>
+          <span class="field-error" th:errors="*{destinationLocationId}"></span>
+        </p>
+        <p>
+          <label for="move-qty">Quantity</label>
+          <input id="move-qty" type="number" min="1" th:field="*{quantity}">
+          <span class="field-error" th:errors="*{quantity}"></span>
+        </p>
+        <p>
+          <label for="move-ref">Reference</label>
+          <input id="move-ref" th:field="*{reference}">
+        </p>
+        <button type="submit">Move stock</button>
+      </form>
+    </article>
+  </div>
+
+  <div class="grid-2" style="margin-top:1rem">
+    <article class="panel">
+      <h2>Adjust stock</h2>
+      <form method="post" th:action="@{/inventory/adjust}" th:object="${adjustStockForm}"
+            data-confirm="Apply this stock adjustment? Negative deltas reduce on-hand quantity.">
+        <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+        <p>
+          <label for="adj-product">Product</label>
+          <select id="adj-product" th:field="*{productId}">
+            <option value="">Select product</option>
+            <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.sku} + ' · ' + ${product.name}"></option>
+          </select>
+          <span class="field-error" th:errors="*{productId}"></span>
+        </p>
+        <p>
+          <label for="adj-location">Location</label>
+          <select id="adj-location" th:field="*{locationId}">
+            <option value="">Select location</option>
+            <option th:each="location : ${locations}" th:value="${location.id}"
+                    th:text="${location.warehouseCode} + ' / ' + ${location.code}"></option>
+          </select>
+          <span class="field-error" th:errors="*{locationId}"></span>
+        </p>
+        <p>
+          <label for="delta">Delta</label>
+          <input id="delta" type="number" th:field="*{delta}">
+          <span class="hint">Use a negative number to write off stock.</span>
+          <span class="field-error" th:errors="*{delta}"></span>
+        </p>
+        <p>
+          <label for="adj-ref">Reference</label>
+          <input id="adj-ref" th:field="*{reference}">
+        </p>
+        <button type="submit">Apply adjustment</button>
+      </form>
+    </article>
+    <article class="panel">
+      <h2>Set reorder point</h2>
+      <form method="post" th:action="@{/inventory/reorder-point}" th:object="${reorderPointForm}">
+        <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+        <p>
+          <label for="rp-product">Product</label>
+          <select id="rp-product" th:field="*{productId}">
+            <option value="">Select product</option>
+            <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.sku} + ' · ' + ${product.name}"></option>
+          </select>
+          <span class="field-error" th:errors="*{productId}"></span>
+        </p>
+        <p>
+          <label for="rp-location">Location</label>
+          <select id="rp-location" th:field="*{locationId}">
+            <option value="">Select location</option>
+            <option th:each="location : ${locations}" th:value="${location.id}"
+                    th:text="${location.warehouseCode} + ' / ' + ${location.code}"></option>
+          </select>
+          <span class="field-error" th:errors="*{locationId}"></span>
+        </p>
+        <p>
+          <label for="reorderPoint">Reorder point</label>
+          <input id="reorderPoint" type="number" min="0" th:field="*{reorderPoint}">
+          <span class="field-error" th:errors="*{reorderPoint}"></span>
+        </p>
+        <button type="submit">Save reorder point</button>
+      </form>
+    </article>
+  </div>
+</section>
+</body>
+</html>

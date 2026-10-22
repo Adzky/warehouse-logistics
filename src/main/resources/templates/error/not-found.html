@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title>Not found · Warehouse Logistics</title>
+</head>
+<body>
+<section>
+  <article class="panel">
+    <h1>Record not found</h1>
+    <p class="lede" th:text="${message} ?: 'The requested warehouse record could not be found.'"></p>
+    <p><a class="button" th:href="@{/}">Back to dashboard</a></p>
+  </article>
+</section>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title>Movements · Warehouse Logistics</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <h1>Movement history</h1>
+      <p class="lede">Audit receive, move, adjust, reserve, pick, and ship activity.</p>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><span class="muted">Receives</span><strong th:text="${receiveCount}">0</strong></div>
+    <div class="stat"><span class="muted">Moves</span><strong th:text="${moveCount}">0</strong></div>
+    <div class="stat"><span class="muted">Adjustments</span><strong th:text="${adjustCount}">0</strong></div>
+    <div class="stat"><span class="muted">Shipments</span><strong th:text="${shipCount}">0</strong></div>
+  </div>
+  <form class="panel filters toolbar" method="get" th:action="@{/movements}" role="search" style="margin-top:1rem">
+    <div>
+      <label for="q">Search</label>
+      <input id="q" name="q" th:value="${q}" placeholder="SKU, location, or reference">
+    </div>
+    <div>
+      <label for="productId">Product</label>
+      <select id="productId" name="productId">
+        <option value="">All products</option>
+        <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.sku}"
+                th:selected="${product.id == productId}"></option>
+      </select>
+    </div>
+    <div>
+      <label for="type">Type</label>
+      <select id="type" name="type">
+        <option value="">All types</option>
+        <option th:each="item : ${types}" th:value="${item}" th:text="${item}" th:selected="${item == type}"></option>
+      </select>
+    </div>
+    <div style="align-self:end"><button type="submit">Filter</button></div>
+  </form>
+  <article class="panel">
+    <div class="table-wrap" th:if="${!page.items.isEmpty()}">
+      <table>
+        <thead>
+        <tr>
+          <th>When</th><th>Type</th><th>SKU</th><th>Qty</th><th>From</th><th>To</th><th>Reference</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="movement : ${page.items}">
+          <td th:text="${#temporals.formatISO(movement.occurredAt)}"></td>
+          <td><span class="badge" th:text="${movement.type}"></span></td>
+          <td th:text="${movement.sku}"></td>
+          <td th:text="${movement.quantity}"></td>
+          <td th:text="${movement.sourceLocationCode} ?: '—'"></td>
+          <td th:text="${movement.destinationLocationCode} ?: '—'"></td>
+          <td th:text="${movement.reference} ?: '—'"></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="empty" th:if="${page.items.isEmpty()}">No movements match these filters.</p>
+    <div th:replace="~{fragments/pager :: pager}"></div>
+  </article>
+</section>
+</body>
+</html>

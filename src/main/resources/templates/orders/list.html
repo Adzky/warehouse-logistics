@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title>Orders · Warehouse Logistics</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <h1>Outbound orders</h1>
+      <p class="lede">Create an order to reserve stock, then pick, pack, and ship.</p>
+    </div>
+  </div>
+  <div class="grid-2">
+    <article class="panel">
+      <form class="filters toolbar" method="get" th:action="@{/orders}" role="search">
+        <div>
+          <label for="q">Search</label>
+          <input id="q" name="q" th:value="${q}" placeholder="Reference">
+        </div>
+        <div>
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="">All</option>
+            <option th:each="item : ${statuses}" th:value="${item}" th:text="${item}" th:selected="${item == status}"></option>
+          </select>
+        </div>
+        <div style="align-self:end"><button type="submit">Filter</button></div>
+      </form>
+      <div class="table-wrap" th:if="${!page.items.isEmpty()}">
+        <table>
+          <thead>
+          <tr><th>Reference</th><th>Status</th><th>Created</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="order : ${page.items}">
+            <td><a th:href="@{/orders/{id}(id=${order.id})}" th:text="${order.reference}"></a></td>
+            <td><span class="badge" th:text="${order.status}"></span></td>
+            <td th:text="${#temporals.formatISO(order.createdAt)}"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" th:if="${page.items.isEmpty()}">No orders match these filters.</p>
+      <div th:replace="~{fragments/pager :: pager}"></div>
+    </article>
+    <article class="panel">
+      <h2>Create order</h2>
+      <form method="post" th:action="@{/orders}" th:object="${orderForm}" data-line-editor>
+        <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+        <p>
+          <label for="reference">Reference</label>
+          <input id="reference" th:field="*{reference}">
+          <span class="field-error" th:errors="*{reference}"></span>
+        </p>
+        <div class="line-editor">
+          <p class="label">Lines</p>
+          <div data-line-rows>
+            <div class="line-row" data-line-row th:each="line, stat : *{lines}">
+              <p>
+                <label th:for="${'product-' + stat.index}">Product</label>
+                <select th:id="${'product-' + stat.index}" th:field="*{lines[__${stat.index}__].productId}">
+                  <option value="">Select product</option>
+                  <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.sku} + ' · ' + ${product.name}"></option>
+                </select>
+              </p>
+              <p>
+                <label th:for="${'source-' + stat.index}">Pick location</label>
+                <select th:id="${'source-' + stat.index}" th:field="*{lines[__${stat.index}__].sourceLocationId}">
+                  <option value="">Select location</option>
+                  <option th:each="location : ${locations}" th:value="${location.id}"
+                          th:text="${location.warehouseCode} + ' / ' + ${location.code}"></option>
+                </select>
+              </p>
+              <p>
+                <label th:for="${'qty-' + stat.index}">Quantity</label>
+                <input th:id="${'qty-' + stat.index}" type="number" min="1" th:field="*{lines[__${stat.index}__].quantity}">
+              </p>
+              <button class="secondary" type="button" data-remove-line>Remove</button>
+            </div>
+          </div>
+          <button class="secondary" type="button" data-add-line>Add line</button>
+        </div>
+        <p><button type="submit">Create and reserve</button></p>
+      </form>
+    </article>
+  </div>
+</section>
+</body>
+</html>

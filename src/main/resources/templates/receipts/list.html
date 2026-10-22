@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title>Receiving · Warehouse Logistics</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <h1>Inbound receipts</h1>
+      <p class="lede">Create expected receipts, then receive and put away outstanding quantities.</p>
+    </div>
+  </div>
+  <div class="grid-2">
+    <article class="panel">
+      <form class="filters toolbar" method="get" th:action="@{/receipts}" role="search">
+        <div>
+          <label for="q">Search</label>
+          <input id="q" name="q" th:value="${q}" placeholder="Reference or supplier">
+        </div>
+        <div>
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="">All</option>
+            <option th:each="item : ${statuses}" th:value="${item}" th:text="${item}" th:selected="${item == status}"></option>
+          </select>
+        </div>
+        <div style="align-self:end"><button type="submit">Filter</button></div>
+      </form>
+      <div class="table-wrap" th:if="${!page.items.isEmpty()}">
+        <table>
+          <thead>
+          <tr><th>Reference</th><th>Supplier</th><th>Status</th><th>Created</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="receipt : ${page.items}">
+            <td><a th:href="@{/receipts/{id}(id=${receipt.id})}" th:text="${receipt.reference}"></a></td>
+            <td th:text="${receipt.supplierName} ?: '—'"></td>
+            <td><span class="badge" th:text="${receipt.status}"></span></td>
+            <td th:text="${#temporals.formatISO(receipt.createdAt)}"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" th:if="${page.items.isEmpty()}">No receipts match these filters.</p>
+      <div th:replace="~{fragments/pager :: pager}"></div>
+    </article>
+    <article class="panel">
+      <h2>Create receipt</h2>
+      <form method="post" th:action="@{/receipts}" th:object="${receiptForm}" data-line-editor>
+        <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+        <p>
+          <label for="reference">Reference</label>
+          <input id="reference" th:field="*{reference}">
+          <span class="field-error" th:errors="*{reference}"></span>
+        </p>
+        <p>
+          <label for="supplierId">Supplier</label>
+          <select id="supplierId" th:field="*{supplierId}">
+            <option value="">None</option>
+            <option th:each="supplier : ${suppliers}" th:value="${supplier.id}" th:text="${supplier.code} + ' · ' + ${supplier.name}"></option>
+          </select>
+        </p>
+        <div class="line-editor">
+          <p class="label">Lines</p>
+          <div data-line-rows>
+            <div class="line-row" data-line-row th:each="line, stat : *{lines}">
+              <p>
+                <label th:for="${'product-' + stat.index}">Product</label>
+                <select th:id="${'product-' + stat.index}" th:field="*{lines[__${stat.index}__].productId}">
+                  <option value="">Select product</option>
+                  <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.sku} + ' · ' + ${product.name}"></option>
+                </select>
+              </p>
+              <p>
+                <label th:for="${'dest-' + stat.index}">Put-away location</label>
+                <select th:id="${'dest-' + stat.index}" th:field="*{lines[__${stat.index}__].destinationLocationId}">
+                  <option value="">Select location</option>
+                  <option th:each="location : ${locations}" th:value="${location.id}"
+                          th:text="${location.warehouseCode} + ' / ' + ${location.code}"></option>
+                </select>
+              </p>
+              <p>
+                <label th:for="${'qty-' + stat.index}">Expected qty</label>
+                <input th:id="${'qty-' + stat.index}" type="number" min="1" th:field="*{lines[__${stat.index}__].expectedQuantity}">
+              </p>
+              <button class="secondary" type="button" data-remove-line>Remove</button>
+            </div>
+          </div>
+          <button class="secondary" type="button" data-add-line>Add line</button>
+        </div>
+        <p><button type="submit">Create receipt</button></p>
+      </form>
+    </article>
+  </div>
+</section>
+</body>
+</html>

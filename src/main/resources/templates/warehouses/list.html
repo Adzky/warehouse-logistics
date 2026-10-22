@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title>Warehouses · Warehouse Logistics</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <h1>Warehouses</h1>
+      <p class="lede">Create sites and open a warehouse to manage zones, bins, and operational locations.</p>
+    </div>
+  </div>
+  <div class="grid-2">
+    <article class="panel">
+      <form class="filters toolbar" method="get" th:action="@{/warehouses}" role="search">
+        <div>
+          <label for="q">Search</label>
+          <input id="q" name="q" th:value="${q}" placeholder="Code, name, or city">
+        </div>
+        <div style="align-self:end">
+          <button type="submit">Filter</button>
+        </div>
+      </form>
+      <div class="table-wrap" th:if="${!page.items.isEmpty()}">
+        <table>
+          <thead>
+          <tr><th>Code</th><th>Name</th><th>Location</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="warehouse : ${page.items}">
+            <td><a th:href="@{/warehouses/{id}(id=${warehouse.id})}" th:text="${warehouse.code}"></a></td>
+            <td th:text="${warehouse.name}"></td>
+            <td th:text="${warehouse.location}"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" th:if="${page.items.isEmpty()}">No warehouses match this search.</p>
+      <div th:replace="~{fragments/pager :: pager}"></div>
+    </article>
+    <article class="panel">
+      <h2>Add warehouse</h2>
+      <form method="post" th:action="@{/warehouses}" th:object="${warehouseForm}">
+        <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+        <p>
+          <label for="code">Code</label>
+          <input id="code" th:field="*{code}" autocomplete="off">
+          <span class="field-error" th:errors="*{code}"></span>
+        </p>
+        <p>
+          <label for="name">Name</label>
+          <input id="name" th:field="*{name}">
+          <span class="field-error" th:errors="*{name}"></span>
+        </p>
+        <p>
+          <label for="location">Location</label>
+          <input id="location" th:field="*{location}">
+          <span class="field-error" th:errors="*{location}"></span>
+        </p>
+        <button type="submit">Create warehouse</button>
+      </form>
+    </article>
+  </div>
+</section>
+</body>
+</html>

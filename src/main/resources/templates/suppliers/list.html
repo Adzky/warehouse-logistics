@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title>Suppliers · Warehouse Logistics</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <h1>Suppliers</h1>
+      <p class="lede">Associate inbound receipts with a supplier record.</p>
+    </div>
+  </div>
+  <div class="grid-2">
+    <article class="panel">
+      <form class="filters toolbar" method="get" th:action="@{/suppliers}" role="search">
+        <div>
+          <label for="q">Search</label>
+          <input id="q" name="q" th:value="${q}">
+        </div>
+        <div style="align-self:end"><button type="submit">Search</button></div>
+      </form>
+      <div class="table-wrap" th:if="${!page.items.isEmpty()}">
+        <table>
+          <thead>
+          <tr><th>Code</th><th>Name</th><th>Email</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="supplier : ${page.items}">
+            <td th:text="${supplier.code}"></td>
+            <td th:text="${supplier.name}"></td>
+            <td th:text="${supplier.contactEmail} ?: '—'"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" th:if="${page.items.isEmpty()}">No suppliers match this search.</p>
+      <div th:replace="~{fragments/pager :: pager}"></div>
+    </article>
+    <article class="panel">
+      <h2>Add supplier</h2>
+      <form method="post" th:action="@{/suppliers}" th:object="${supplierForm}">
+        <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+        <p>
+          <label for="code">Code</label>
+          <input id="code" th:field="*{code}">
+          <span class="field-error" th:errors="*{code}"></span>
+        </p>
+        <p>
+          <label for="name">Name</label>
+          <input id="name" th:field="*{name}">
+          <span class="field-error" th:errors="*{name}"></span>
+        </p>
+        <p>
+          <label for="contactEmail">Contact email</label>
+          <input id="contactEmail" type="email" th:field="*{contactEmail}">
+          <span class="field-error" th:errors="*{contactEmail}"></span>
+        </p>
+        <button type="submit">Create supplier</button>
+      </form>
+    </article>
+  </div>
+</section>
+</body>
+</html>

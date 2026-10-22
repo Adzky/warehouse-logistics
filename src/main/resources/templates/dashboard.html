@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title>Dashboard · Warehouse Logistics</title>
+</head>
+<body>
+<section>
+  <div class="hero">
+    <p class="muted">Floor operations</p>
+    <h1>Warehouse dashboard</h1>
+    <p class="lede">Inventory alerts, inbound receipts, and orders that still need fulfillment.</p>
+    <div class="stats">
+      <div class="stat"><span class="muted">Warehouses</span><strong th:text="${warehouseCount}">0</strong></div>
+      <div class="stat"><span class="muted">Low stock</span><strong th:text="${alertCount}">0</strong></div>
+      <div class="stat"><span class="muted">Open receipts</span><strong th:text="${inboundCount}">0</strong></div>
+      <div class="stat"><span class="muted">Open orders</span><strong th:text="${openOrderCount}">0</strong></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <article class="panel">
+      <h2>Inventory alerts</h2>
+      <p class="muted">Available quantity is at or below the reorder point.</p>
+      <div class="table-wrap" th:if="${!alerts.isEmpty()}">
+        <table>
+          <thead>
+          <tr><th>SKU</th><th>Location</th><th>Available</th><th>Reorder</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="item : ${alerts}">
+            <td><a th:href="@{/inventory(q=${item.sku})}" th:text="${item.sku}"></a></td>
+            <td th:text="${item.warehouseCode} + ' / ' + ${item.locationCode}"></td>
+            <td th:text="${item.available}"></td>
+            <td th:text="${item.reorderPoint}"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" th:if="${alerts.isEmpty()}">No reorder alerts right now.</p>
+      <p><a class="button secondary" th:href="@{/inventory(alertsOnly=true)}">View all alerts</a></p>
+    </article>
+
+    <article class="panel">
+      <h2>Inbound receipts</h2>
+      <div class="table-wrap" th:if="${!inbound.isEmpty()}">
+        <table>
+          <thead>
+          <tr><th>Reference</th><th>Status</th><th>Supplier</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="receipt : ${inbound}">
+            <td><a th:href="@{/receipts/{id}(id=${receipt.id})}" th:text="${receipt.reference}"></a></td>
+            <td><span class="badge badge-open" th:text="${receipt.status}"></span></td>
+            <td th:text="${receipt.supplierName} ?: '—'"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" th:if="${inbound.isEmpty()}">No open inbound receipts.</p>
+      <p><a class="button secondary" th:href="@{/receipts}">Go to receiving</a></p>
+    </article>
+  </div>
+
+  <article class="panel" style="margin-top:1rem">
+    <h2>Orders awaiting fulfillment</h2>
+    <div class="table-wrap" th:if="${!orders.isEmpty()}">
+      <table>
+        <thead>
+        <tr><th>Reference</th><th>Status</th><th>Created</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="order : ${orders}">
+          <td><a th:href="@{/orders/{id}(id=${order.id})}" th:text="${order.reference}"></a></td>
+          <td><span class="badge" th:text="${order.status}"></span></td>
+          <td th:text="${#temporals.formatISO(order.createdAt)}"></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="empty" th:if="${orders.isEmpty()}">No reserved, picked, or packed orders.</p>
+    <p><a class="button secondary" th:href="@{/orders}">Go to orders</a></p>
+  </article>
+</section>
+</body>
+</html>

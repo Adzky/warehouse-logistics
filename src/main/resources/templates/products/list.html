@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title>Products · Warehouse Logistics</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <h1>Products</h1>
+      <p class="lede">Search the catalog and add SKUs used by receiving and orders.</p>
+    </div>
+  </div>
+  <div class="grid-2">
+    <article class="panel">
+      <form class="filters toolbar" method="get" th:action="@{/products}" role="search">
+        <div>
+          <label for="q">Search SKU or name</label>
+          <input id="q" name="q" th:value="${q}">
+        </div>
+        <div style="align-self:end"><button type="submit">Search</button></div>
+      </form>
+      <div class="table-wrap" th:if="${!page.items.isEmpty()}">
+        <table>
+          <thead>
+          <tr><th>SKU</th><th>Name</th><th>UOM</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="product : ${page.items}">
+            <td><a th:href="@{/inventory(q=${product.sku})}" th:text="${product.sku}"></a></td>
+            <td th:text="${product.name}"></td>
+            <td th:text="${product.unitOfMeasure}"></td>
+            <td><span class="badge" th:classappend="${product.active} ? ' badge-done' : ''" th:text="${product.active} ? 'Active' : 'Inactive'"></span></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" th:if="${page.items.isEmpty()}">No products match this search.</p>
+      <div th:replace="~{fragments/pager :: pager}"></div>
+    </article>
+    <article class="panel">
+      <h2>Add product</h2>
+      <form method="post" th:action="@{/products}" th:object="${productForm}">
+        <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+        <p>
+          <label for="sku">SKU</label>
+          <input id="sku" th:field="*{sku}">
+          <span class="field-error" th:errors="*{sku}"></span>
+        </p>
+        <p>
+          <label for="name">Name</label>
+          <input id="name" th:field="*{name}">
+          <span class="field-error" th:errors="*{name}"></span>
+        </p>
+        <p>
+          <label for="unitOfMeasure">Unit of measure</label>
+          <input id="unitOfMeasure" th:field="*{unitOfMeasure}">
+          <span class="field-error" th:errors="*{unitOfMeasure}"></span>
+        </p>
+        <p>
+          <label for="description">Description</label>
+          <textarea id="description" th:field="*{description}"></textarea>
+          <span class="field-error" th:errors="*{description}"></span>
+        </p>
+        <button type="submit">Create product</button>
+      </form>
+    </article>
+  </div>
+</section>
+</body>
+</html>

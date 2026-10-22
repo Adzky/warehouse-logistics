@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title th:text="${warehouse.code} + ' · Warehouse Logistics'">Warehouse</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <p class="muted"><a th:href="@{/warehouses}">Warehouses</a></p>
+      <h1 th:text="${warehouse.name}">Warehouse</h1>
+      <div class="detail-meta">
+        <span>Code <strong th:text="${warehouse.code}"></strong></span>
+        <span th:text="${warehouse.location}"></span>
+      </div>
+    </div>
+    <form method="post" th:action="@{/warehouses/{id}/delete(id=${warehouse.id})}"
+          data-confirm="Delete this warehouse? This cannot be undone if the warehouse has no related records.">
+      <button class="danger" type="submit">Delete warehouse</button>
+    </form>
+  </div>
+  <div class="grid-2">
+    <article class="panel">
+      <h2>Locations</h2>
+      <div class="table-wrap" th:if="${!locations.isEmpty()}">
+        <table>
+          <thead>
+          <tr><th>Code</th><th>Name</th><th>Type</th><th>Parent</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="location : ${locations}">
+            <td th:text="${location.code}"></td>
+            <td th:text="${location.name}"></td>
+            <td><span class="badge" th:text="${location.type}"></span></td>
+            <td th:text="${location.parentLocationCode} ?: '—'"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" th:if="${locations.isEmpty()}">No locations yet. Create a zone or operational area first.</p>
+    </article>
+    <article class="panel">
+      <h2>Add location</h2>
+      <form method="post" data-location-form
+            th:action="@{/warehouses/{id}/locations(id=${warehouse.id})}"
+            th:object="${locationForm}">
+        <input type="hidden" th:field="*{warehouseId}">
+        <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+        <p>
+          <label for="loc-code">Code</label>
+          <input id="loc-code" th:field="*{code}">
+          <span class="field-error" th:errors="*{code}"></span>
+        </p>
+        <p>
+          <label for="loc-name">Name</label>
+          <input id="loc-name" th:field="*{name}">
+          <span class="field-error" th:errors="*{name}"></span>
+        </p>
+        <p>
+          <label for="loc-type">Type</label>
+          <select id="loc-type" th:field="*{type}">
+            <option value="">Select type</option>
+            <option th:each="type : ${locationTypes}" th:value="${type}" th:text="${type}"></option>
+          </select>
+          <span class="field-error" th:errors="*{type}"></span>
+        </p>
+        <p>
+          <label for="parentLocationId">Parent zone</label>
+          <select id="parentLocationId" th:field="*{parentLocationId}">
+            <option value="">None</option>
+            <option th:each="location : ${locations}"
+                    th:value="${location.id}"
+                    th:text="${location.code} + ' · ' + ${location.name}"
+                    th:attr="data-warehouse=${location.warehouseId}, data-type=${location.type}">
+            </option>
+          </select>
+          <span class="hint">Required for bins. Operational locations stay at the warehouse root.</span>
+          <span class="field-error" th:errors="*{parentLocationId}"></span>
+        </p>
+        <button type="submit">Create location</button>
+      </form>
+    </article>
+  </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<nav class="pager" th:fragment="pager" th:if="${page.total > page.size}" aria-label="Pagination">
+  <a class="button secondary"
+     th:if="${page.hasPrevious()}"
+     th:href="@{${#httpServletRequest.servletPath}(page=${page.page - 1}, size=${page.size}, q=${q}, warehouseId=${warehouseId}, locationId=${locationId}, alertsOnly=${alertsOnly}, status=${status}, productId=${productId}, type=${type})}">Previous</a>
+  <span class="muted" th:text="'Page ' + ${page.page} + ' of ' + ${page.totalPages} + ' · ' + ${page.total} + ' records'"></span>
+  <a class="button secondary"
+     th:if="${page.hasNext()}"
+     th:href="@{${#httpServletRequest.servletPath}(page=${page.page + 1}, size=${page.size}, q=${q}, warehouseId=${warehouseId}, locationId=${locationId}, alertsOnly=${alertsOnly}, status=${status}, productId=${productId}, type=${type})}">Next</a>
+</nav>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title th:text="${receipt.reference} + ' · Receiving'">Receipt</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <p class="muted"><a th:href="@{/receipts}">Receiving</a></p>
+      <h1 th:text="${receipt.reference}">ASN</h1>
+      <div class="detail-meta">
+        <span class="badge" th:text="${receipt.status}"></span>
+        <span th:text="${receipt.supplierName} ?: 'No supplier'"></span>
+        <span th:text="${#temporals.formatISO(receipt.createdAt)}"></span>
+      </div>
+    </div>
+  </div>
+  <article class="panel">
+    <h2>Receive and put away</h2>
+    <p class="muted">Enter the quantity arriving now. Repeat until each line is complete.</p>
+    <form method="post" th:action="@{/receipts/{id}/receive(id=${receipt.id})}" th:object="${receiveForm}"
+          th:if="${receipt.status.name() != 'RECEIVED'}">
+      <div class="table-wrap">
+        <table>
+          <thead>
+          <tr>
+            <th>SKU</th><th>Location</th><th>Expected</th><th>Received</th><th>Outstanding</th><th>Receive now</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="line, stat : ${receipt.lines}">
+            <td th:text="${line.sku}"></td>
+            <td th:text="${line.destinationLocationCode}"></td>
+            <td th:text="${line.expectedQuantity}"></td>
+            <td th:text="${line.receivedQuantity}"></td>
+            <td th:text="${line.outstandingQuantity}"></td>
+            <td>
+              <input type="hidden" th:field="*{lines[__${stat.index}__].lineId}">
+              <label class="visually-hidden" th:for="${'qty-' + stat.index}" th:text="'Quantity for ' + ${line.sku}"></label>
+              <input th:id="${'qty-' + stat.index}" type="number" min="0"
+                     th:max="${line.outstandingQuantity}"
+                     th:field="*{lines[__${stat.index}__].quantity}">
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="actions"><button type="submit">Receive quantities</button></p>
+    </form>
+    <p class="empty" th:if="${receipt.status.name() == 'RECEIVED'}">This receipt is complete. Stock is already in the destination locations.</p>
+  </article>
+</section>
+</body>
+</html>
