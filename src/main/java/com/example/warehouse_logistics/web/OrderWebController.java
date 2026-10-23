@@ -1,6 +1,8 @@
 package com.example.warehouse_logistics.web;
 
 import com.example.warehouse_logistics.dto.OrderResponse;
+import com.example.warehouse_logistics.dto.LocationResponse;
+import com.example.warehouse_logistics.dto.ProductResponse;
 import com.example.warehouse_logistics.entity.OutboundOrderStatus;
 import com.example.warehouse_logistics.service.CatalogService;
 import com.example.warehouse_logistics.service.OutboundOrderService;
@@ -100,8 +102,10 @@ public class OrderWebController {
     }
 
     private void populateCreateModel(Model model) {
-        model.addAttribute("products", catalogService.findProducts());
-        model.addAttribute("locations", catalogService.findLocations(null));
+        model.addAttribute("products", catalogService.findProducts().stream()
+                .filter(ProductResponse::active).toList());
+        model.addAttribute("locations", catalogService.findLocations(null).stream()
+                .filter(LocationResponse::active).toList());
         if (!model.containsAttribute("orderForm")) {
             model.addAttribute("orderForm", new OrderForm());
         }

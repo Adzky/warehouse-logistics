@@ -26,6 +26,9 @@ public class Supplier {
     @Column(length = 255)
     private String contactEmail;
 
+    @Column(nullable = false)
+    private boolean active = true;
+
     protected Supplier() {
     }
 
@@ -39,4 +42,11 @@ public class Supplier {
     public String getCode() { return code; }
     public String getName() { return name; }
     public String getContactEmail() { return contactEmail; }
+    public boolean isActive() { return active; }
+    public void update(String code, String name, String contactEmail) {
+        this.code = code;
+        this.name = name;
+        this.contactEmail = contactEmail;
+    }
+    public void setActive(boolean active) { this.active = active; }
 }

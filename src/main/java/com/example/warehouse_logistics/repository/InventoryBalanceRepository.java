@@ -20,4 +20,6 @@ public interface InventoryBalanceRepository extends JpaRepository<InventoryBalan
             @Param("locationId") UUID locationId);
 
     List<InventoryBalance> findAllByOrderByLocation_CodeAsc();
+    boolean existsByLocationIdAndOnHandGreaterThan(UUID locationId, long quantity);
+    boolean existsByLocationIdAndReservedGreaterThan(UUID locationId, long quantity);
 }

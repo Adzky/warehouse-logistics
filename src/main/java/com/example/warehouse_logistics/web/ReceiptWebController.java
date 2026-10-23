@@ -1,6 +1,9 @@
 package com.example.warehouse_logistics.web;
 
 import com.example.warehouse_logistics.dto.ReceiptResponse;
+import com.example.warehouse_logistics.dto.LocationResponse;
+import com.example.warehouse_logistics.dto.ProductResponse;
+import com.example.warehouse_logistics.dto.SupplierResponse;
 import com.example.warehouse_logistics.entity.ReceiptStatus;
 import com.example.warehouse_logistics.service.CatalogService;
 import com.example.warehouse_logistics.service.ReceivingService;
@@ -101,9 +104,12 @@ public class ReceiptWebController {
     }
 
     private void populateCreateModel(Model model) {
-        model.addAttribute("products", catalogService.findProducts());
-        model.addAttribute("locations", catalogService.findLocations(null));
-        model.addAttribute("suppliers", catalogService.findSuppliers());
+        model.addAttribute("products", catalogService.findProducts().stream()
+                .filter(ProductResponse::active).toList());
+        model.addAttribute("locations", catalogService.findLocations(null).stream()
+                .filter(LocationResponse::active).toList());
+        model.addAttribute("suppliers", catalogService.findSuppliers().stream()
+                .filter(SupplierResponse::active).toList());
         if (!model.containsAttribute("receiptForm")) {
             model.addAttribute("receiptForm", new ReceiptForm());
         }

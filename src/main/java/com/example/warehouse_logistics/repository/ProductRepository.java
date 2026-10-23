@@ -12,6 +12,7 @@ import java.util.UUID;
 
 public interface ProductRepository extends JpaRepository<Product, UUID> {
     boolean existsBySku(String sku);
+    boolean existsBySkuAndIdNot(String sku, UUID id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select product from Product product where product.id = :id")

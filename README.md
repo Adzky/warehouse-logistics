@@ -35,16 +35,60 @@ workflows. User authentication is not implemented yet.
 - A PostgreSQL database named `warehouse_logistics`, or an equivalent database
   configured in `src/main/resources/application.properties`
 
-Review the datasource URL, username, and password, also the active profile in
-`src/main/resources/application.properties` and set them to match your local
-PostgreSQL setup. Do not commit database credentials.
+### Initialize PostgreSQL
 
-If you run locally, create `application-local.properties` file and define the
-`DB_PASSWORD` variable with your local database password:
+1. Install PostgreSQL and start its service. The default application datasource
+   expects PostgreSQL at `localhost:5432`.
+2. Connect to the built-in `postgres` database as a PostgreSQL administrator.
+   From PowerShell, for example:
 
-```properties
-DB_PASSWORD=YOUR_DB_PASSWORD_HERE
-```
+   ```powershell
+   psql -h localhost -p 5432 -U postgres -d postgres
+   ```
+
+   Enter the PostgreSQL administrator password when prompted. If `psql` is not
+   on `PATH`, run it from PostgreSQL's `bin` directory or use pgAdmin's Query
+   Tool connected to the `postgres` database.
+3. Create an empty application database. The default application username is
+   `postgres`; if you use a different application username, replace the owner
+   below with that role:
+
+   ```sql
+   CREATE DATABASE warehouse_logistics OWNER postgres;
+   ```
+
+   Run this once; PostgreSQL reports an error if the database already exists.
+   For an existing database, do not drop or recreate it. Confirm that the
+   configured application role can connect and create tables in its schema.
+4. Configure the application to use the database. The default URL is
+   `jdbc:postgresql://localhost:5432/warehouse_logistics`, and the default
+   username is `postgres`. If using the local profile, create
+   `src/main/resources/application-local.properties` and set the password
+   variable expected by the datasource configuration:
+
+   ```properties
+   DB_PASSWORD=your-local-postgres-password
+   ```
+
+   Alternatively, set `DB_PASSWORD` in the process environment before starting
+   Maven. Keep local credentials out of source control. If your PostgreSQL host,
+   port, database, or username differs, update the datasource settings in
+   `src/main/resources/application.properties` to match.
+5. Verify the database exists and that the configured application credentials
+   can connect. For the defaults:
+
+   ```powershell
+   psql -h localhost -p 5432 -U postgres -d warehouse_logistics -c "SELECT current_database(), current_user;"
+   ```
+
+   The result should show `warehouse_logistics` and the application role.
+
+On the first application startup, Flyway creates the tables by applying
+migrations from `src/main/resources/db/migration`. Hibernate validates the
+resulting schema; it does not create or update tables. Keep the database empty
+for a fresh setup. Flyway is configured to baseline an existing non-empty
+database without migration history, so review and back up important existing
+data before starting the application against it.
 
 ## Run locally
 
@@ -56,13 +100,6 @@ From PowerShell in the repository root:
 
 The application listens on port `8080` by default. Open
 [http://localhost:8080](http://localhost:8080) for the warehouse dashboard.
-Flyway applies migrations
-from `src/main/resources/db/migration`; Hibernate uses `validate` mode and does
-not generate or update the schema.
-
-For an existing, non-empty database without Flyway history, Flyway is configured
-to baseline it at version `0` before applying the migrations. Review your
-database and back it up before running migrations against important data.
 
 ## Run tests
 
@@ -99,9 +136,12 @@ application services as the REST API.
 | Order detail | `/orders/{id}` | Pick, pack, ship, or cancel |
 | Movements | `/movements` | Movement history and basic operational counts |
 
-List pages support search or status filters and pagination. Create forms show
-field-level validation messages. Delete warehouse, cancel order, ship, and
-negative stock adjustment ask for confirmation before submitting.
+List pages support search or status filters and pagination. Create and edit
+forms show field-level validation messages. Product, supplier, and location
+detail pages support editing and archive/restore actions; locations with stock,
+child locations, or receipt/order references cannot be archived. Warehouse
+deletion, archiving records, order cancellation/shipping, and stock adjustment
+ask for confirmation before submitting.
 
 ## REST API
 

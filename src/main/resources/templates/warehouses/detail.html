@@ -29,7 +29,8 @@
           </thead>
           <tbody>
           <tr th:each="location : ${locations}">
-            <td th:text="${location.code}"></td>
+            <td><a th:href="@{/warehouses/{id}/locations/{locationId}(id=${warehouse.id},locationId=${location.id})}"
+                   th:text="${location.code}"></a></td>
             <td th:text="${location.name}"></td>
             <td><span class="badge" th:text="${location.type}"></span></td>
             <td th:text="${location.parentLocationCode} ?: '—'"></td>

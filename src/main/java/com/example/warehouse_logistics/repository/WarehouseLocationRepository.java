@@ -8,5 +8,7 @@ import java.util.UUID;
 
 public interface WarehouseLocationRepository extends JpaRepository<WarehouseLocation, UUID> {
     boolean existsByWarehouseIdAndCode(UUID warehouseId, String code);
+    boolean existsByWarehouseIdAndCodeAndIdNot(UUID warehouseId, String code, UUID id);
+    boolean existsByParentLocationId(UUID parentLocationId);
     List<WarehouseLocation> findByWarehouseId(UUID warehouseId);
 }

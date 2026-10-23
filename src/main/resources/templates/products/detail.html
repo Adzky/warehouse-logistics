@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title th:text="${product.sku} + ' · Products'">Product</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <p class="muted"><a th:href="@{/products}">Products</a></p>
+      <h1 th:text="${product.sku}">SKU</h1>
+      <div class="detail-meta">
+        <span class="badge" th:classappend="${product.active} ? ' badge-done' : ''"
+              th:text="${product.active} ? 'Active' : 'Archived'"></span>
+        <a th:href="@{/inventory(q=${product.sku})}">View inventory</a>
+      </div>
+    </div>
+    <form th:if="${product.active}" method="post"
+          th:action="@{/products/{id}/archive(id=${product.id})}"
+          data-confirm="Archive this product? It will remain in inventory and history but cannot be selected for new receipts or orders.">
+      <button class="danger" type="submit">Archive product</button>
+    </form>
+    <form th:unless="${product.active}" method="post" th:action="@{/products/{id}/restore(id=${product.id})}">
+      <button type="submit">Restore product</button>
+    </form>
+  </div>
+  <article class="panel">
+    <h2>Edit product</h2>
+    <form method="post" th:action="@{/products/{id}(id=${product.id})}" th:object="${productForm}">
+      <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+      <p>
+        <label for="sku">SKU</label>
+        <input id="sku" th:field="*{sku}">
+        <span class="field-error" th:errors="*{sku}"></span>
+      </p>
+      <p>
+        <label for="name">Name</label>
+        <input id="name" th:field="*{name}">
+        <span class="field-error" th:errors="*{name}"></span>
+      </p>
+      <p>
+        <label for="unitOfMeasure">Unit of measure</label>
+        <input id="unitOfMeasure" th:field="*{unitOfMeasure}">
+        <span class="field-error" th:errors="*{unitOfMeasure}"></span>
+      </p>
+      <p>
+        <label for="description">Description</label>
+        <textarea id="description" th:field="*{description}"></textarea>
+        <span class="field-error" th:errors="*{description}"></span>
+      </p>
+      <button type="submit">Save product</button>
+    </form>
+  </article>
+</section>
+</body>
+</html>

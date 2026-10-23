@@ -1,5 +1,12 @@
 package com.example.warehouse_logistics;
 
+import com.example.warehouse_logistics.dto.LocationRequest;
+import com.example.warehouse_logistics.dto.ProductRequest;
+import com.example.warehouse_logistics.dto.SupplierRequest;
+import com.example.warehouse_logistics.dto.WarehouseRequest;
+import com.example.warehouse_logistics.entity.LocationType;
+import com.example.warehouse_logistics.service.CatalogService;
+import com.example.warehouse_logistics.service.WarehouseService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +31,12 @@ class WebUiTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private CatalogService catalogService;
+
+    @Autowired
+    private WarehouseService warehouseService;
 
     @Test
     void dashboardRendersOperationalSummary() throws Exception {
@@ -87,6 +100,90 @@ class WebUiTest {
         mockMvc.perform(get("/warehouses/{id}", "11111111-1111-1111-1111-111111111111"))
                 .andExpect(status().isNotFound())
                 .andExpect(view().name("error/not-found"));
+    }
+
+    @Test
+    void productDetailCanBeEditedArchivedAndRestored() throws Exception {
+        var product = catalogService.createProduct(
+                new ProductRequest("UI-PRODUCT-01", "Original", null, "each"));
+
+        mockMvc.perform(get("/products/{id}", product.id()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("products/detail"));
+        mockMvc.perform(post("/products/{id}", product.id())
+                        .param("sku", "UI-PRODUCT-01")
+                        .param("name", "Updated")
+                        .param("description", "")
+                        .param("unitOfMeasure", "case"))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/products/" + product.id()));
+        mockMvc.perform(post("/products/{id}/archive", product.id()))
+                .andExpect(status().isFound());
+        org.junit.jupiter.api.Assertions.assertFalse(catalogService.findProduct(product.id()).active());
+        mockMvc.perform(post("/products/{id}/restore", product.id()))
+                .andExpect(status().isFound());
+        org.junit.jupiter.api.Assertions.assertTrue(catalogService.findProduct(product.id()).active());
+    }
+
+    @Test
+    void supplierDetailCanBeEditedArchivedAndRestored() throws Exception {
+        var supplier = catalogService.createSupplier(
+                new SupplierRequest("UI-SUPPLIER-01", "Original", "supplier@example.com"));
+
+        mockMvc.perform(get("/suppliers/{id}", supplier.id()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("suppliers/detail"));
+        mockMvc.perform(post("/suppliers/{id}", supplier.id())
+                        .param("code", "UI-SUPPLIER-01")
+                        .param("name", "Updated")
+                        .param("contactEmail", "updated@example.com"))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/suppliers/" + supplier.id()));
+        mockMvc.perform(post("/suppliers/{id}/archive", supplier.id()))
+                .andExpect(status().isFound());
+        org.junit.jupiter.api.Assertions.assertFalse(catalogService.findSupplier(supplier.id()).active());
+        mockMvc.perform(post("/suppliers/{id}/restore", supplier.id()))
+                .andExpect(status().isFound());
+        org.junit.jupiter.api.Assertions.assertTrue(catalogService.findSupplier(supplier.id()).active());
+    }
+
+    @Test
+    void locationDetailCanBeEditedArchivedAndRestored() throws Exception {
+        var warehouse = warehouseService.create(new WarehouseRequest(
+                "WH-UI-LOC-01", "Location UI Warehouse", "Austin"));
+        var location = catalogService.createLocation(new LocationRequest(
+                warehouse.id(), null, "UI-LOC-01", "Original", LocationType.STORAGE));
+
+        mockMvc.perform(get("/warehouses/{id}/locations/{locationId}", warehouse.id(), location.id()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("warehouses/location-detail"));
+        mockMvc.perform(post("/warehouses/{id}/locations/{locationId}", warehouse.id(), location.id())
+                        .param("code", "UI-LOC-01")
+                        .param("name", "Updated"))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/warehouses/" + warehouse.id() + "/locations/" + location.id()));
+        mockMvc.perform(post("/warehouses/{id}/locations/{locationId}/archive", warehouse.id(), location.id()))
+                .andExpect(status().isFound());
+        org.junit.jupiter.api.Assertions.assertFalse(catalogService.findLocation(location.id()).active());
+        mockMvc.perform(post("/warehouses/{id}/locations/{locationId}/restore", warehouse.id(), location.id()))
+                .andExpect(status().isFound());
+        org.junit.jupiter.api.Assertions.assertTrue(catalogService.findLocation(location.id()).active());
+    }
+
+    @Test
+    void locationWithChildCannotBeArchived() throws Exception {
+        var warehouse = warehouseService.create(new WarehouseRequest(
+                "WH-UI-CHILD-01", "Location UI Warehouse", "Austin"));
+        var zone = catalogService.createLocation(new LocationRequest(
+                warehouse.id(), null, "UI-ZONE-01", "Zone", LocationType.ZONE));
+        catalogService.createLocation(new LocationRequest(
+                warehouse.id(), zone.id(), "UI-BIN-01", "Bin", LocationType.BIN));
+
+        mockMvc.perform(post("/warehouses/{id}/locations/{locationId}/archive", warehouse.id(), zone.id())
+                        .header("Referer", "/warehouses/" + warehouse.id() + "/locations/" + zone.id()))
+                .andExpect(status().isFound());
+
+        org.junit.jupiter.api.Assertions.assertTrue(catalogService.findLocation(zone.id()).active());
     }
 
     @Test

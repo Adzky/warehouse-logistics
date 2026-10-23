@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title th:text="${supplier.code} + ' · Suppliers'">Supplier</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <p class="muted"><a th:href="@{/suppliers}">Suppliers</a></p>
+      <h1 th:text="${supplier.name}">Supplier</h1>
+      <div class="detail-meta">
+        <span th:text="${supplier.code}"></span>
+        <span class="badge" th:classappend="${supplier.active} ? ' badge-done' : ''"
+              th:text="${supplier.active} ? 'Active' : 'Archived'"></span>
+      </div>
+    </div>
+    <form th:if="${supplier.active}" method="post"
+          th:action="@{/suppliers/{id}/archive(id=${supplier.id})}"
+          data-confirm="Archive this supplier? Existing receipts will retain its details, but it will no longer be selectable on new receipts.">
+      <button class="danger" type="submit">Archive supplier</button>
+    </form>
+    <form th:unless="${supplier.active}" method="post" th:action="@{/suppliers/{id}/restore(id=${supplier.id})}">
+      <button type="submit">Restore supplier</button>
+    </form>
+  </div>
+  <article class="panel">
+    <h2>Edit supplier</h2>
+    <form method="post" th:action="@{/suppliers/{id}(id=${supplier.id})}" th:object="${supplierForm}">
+      <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+      <p>
+        <label for="code">Code</label>
+        <input id="code" th:field="*{code}">
+        <span class="field-error" th:errors="*{code}"></span>
+      </p>
+      <p>
+        <label for="name">Name</label>
+        <input id="name" th:field="*{name}">
+        <span class="field-error" th:errors="*{name}"></span>
+      </p>
+      <p>
+        <label for="contactEmail">Contact email</label>
+        <input id="contactEmail" type="email" th:field="*{contactEmail}">
+        <span class="field-error" th:errors="*{contactEmail}"></span>
+      </p>
+      <button type="submit">Save supplier</button>
+    </form>
+  </article>
+</section>
+</body>
+</html>

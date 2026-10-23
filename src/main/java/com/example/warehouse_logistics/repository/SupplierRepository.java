@@ -7,4 +7,5 @@ import java.util.UUID;
 
 public interface SupplierRepository extends JpaRepository<Supplier, UUID> {
     boolean existsByCode(String code);
+    boolean existsByCodeAndIdNot(String code, UUID id);
 }

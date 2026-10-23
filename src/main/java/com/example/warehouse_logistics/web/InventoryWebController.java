@@ -1,6 +1,8 @@
 package com.example.warehouse_logistics.web;
 
 import com.example.warehouse_logistics.dto.InventoryResponse;
+import com.example.warehouse_logistics.dto.LocationResponse;
+import com.example.warehouse_logistics.dto.ProductResponse;
 import com.example.warehouse_logistics.service.CatalogService;
 import com.example.warehouse_logistics.service.InventoryService;
 import com.example.warehouse_logistics.service.WarehouseService;
@@ -116,8 +118,10 @@ public class InventoryWebController {
 
     private void populateLookups(Model model) {
         model.addAttribute("warehouses", warehouseService.findAll());
-        model.addAttribute("products", catalogService.findProducts());
-        model.addAttribute("locations", catalogService.findLocations(null));
+        model.addAttribute("products", catalogService.findProducts().stream()
+                .filter(ProductResponse::active).toList());
+        model.addAttribute("locations", catalogService.findLocations(null).stream()
+                .filter(LocationResponse::active).toList());
         if (!model.containsAttribute("directReceiveForm")) {
             model.addAttribute("directReceiveForm", new DirectReceiveForm());
         }

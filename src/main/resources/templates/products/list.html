@@ -27,7 +27,7 @@
           </thead>
           <tbody>
           <tr th:each="product : ${page.items}">
-            <td><a th:href="@{/inventory(q=${product.sku})}" th:text="${product.sku}"></a></td>
+            <td><a th:href="@{/products/{id}(id=${product.id})}" th:text="${product.sku}"></a></td>
             <td th:text="${product.name}"></td>
             <td th:text="${product.unitOfMeasure}"></td>
             <td><span class="badge" th:classappend="${product.active} ? ' badge-done' : ''" th:text="${product.active} ? 'Active' : 'Inactive'"></span></td>

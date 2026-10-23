@@ -4,9 +4,10 @@ import com.example.warehouse_logistics.entity.Supplier;
 
 import java.util.UUID;
 
-public record SupplierResponse(UUID id, String code, String name, String contactEmail) {
+public record SupplierResponse(UUID id, String code, String name, String contactEmail, boolean active) {
     public static SupplierResponse from(Supplier supplier) {
         return new SupplierResponse(
-                supplier.getId(), supplier.getCode(), supplier.getName(), supplier.getContactEmail());
+                supplier.getId(), supplier.getCode(), supplier.getName(), supplier.getContactEmail(),
+                supplier.isActive());
     }
 }

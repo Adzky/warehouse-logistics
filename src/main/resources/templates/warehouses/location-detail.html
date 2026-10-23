@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page(~{::title}, ~{::section})}">
+<head>
+  <title th:text="${location.code} + ' · ' + ${warehouse.code}">Location</title>
+</head>
+<body>
+<section>
+  <div class="page-title">
+    <div>
+      <p class="muted">
+        <a th:href="@{/warehouses/{id}(id=${warehouse.id})}" th:text="${warehouse.code}">Warehouse</a>
+      </p>
+      <h1 th:text="${location.code} + ' · ' + ${location.name}">Location</h1>
+      <div class="detail-meta">
+        <span th:text="${location.type}"></span>
+        <span th:if="${location.parentLocationCode != null}"
+              th:text="'Parent zone: ' + ${location.parentLocationCode}"></span>
+        <span class="badge" th:classappend="${location.active} ? ' badge-done' : ''"
+              th:text="${location.active} ? 'Active' : 'Archived'"></span>
+      </div>
+    </div>
+    <form th:if="${location.active}" method="post"
+          th:action="@{/warehouses/{id}/locations/{locationId}/archive(id=${warehouse.id},locationId=${location.id})}"
+          data-confirm="Archive this location? It must have no stock, child locations, or receipt/order references.">
+      <button class="danger" type="submit">Archive location</button>
+    </form>
+    <form th:unless="${location.active}" method="post"
+          th:action="@{/warehouses/{id}/locations/{locationId}/restore(id=${warehouse.id},locationId=${location.id})}">
+      <button type="submit">Restore location</button>
+    </form>
+  </div>
+  <article class="panel">
+    <h2>Edit location</h2>
+    <p class="muted">Warehouse, location type, and parent zone are fixed after creation.</p>
+    <form method="post"
+          th:action="@{/warehouses/{id}/locations/{locationId}(id=${warehouse.id},locationId=${location.id})}"
+          th:object="${locationEditForm}">
+      <div th:if="${#fields.hasErrors('*')}" class="error-summary" role="alert">Please correct the highlighted fields.</div>
+      <p>
+        <label for="code">Code</label>
+        <input id="code" th:field="*{code}">
+        <span class="field-error" th:errors="*{code}"></span>
+      </p>
+      <p>
+        <label for="name">Name</label>
+        <input id="name" th:field="*{name}">
+        <span class="field-error" th:errors="*{name}"></span>
+      </p>
+      <button type="submit">Save location</button>
+    </form>
+  </article>
+</section>
+</body>
+</html>

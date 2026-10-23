@@ -3,9 +3,11 @@ package com.example.warehouse_logistics.web;
 import com.example.warehouse_logistics.dto.LocationResponse;
 import com.example.warehouse_logistics.dto.WarehouseResponse;
 import com.example.warehouse_logistics.entity.LocationType;
+import com.example.warehouse_logistics.exception.ResourceNotFoundException;
 import com.example.warehouse_logistics.service.CatalogService;
 import com.example.warehouse_logistics.service.WarehouseService;
 import com.example.warehouse_logistics.web.form.LocationForm;
+import com.example.warehouse_logistics.web.form.LocationEditForm;
 import com.example.warehouse_logistics.web.form.WarehouseForm;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -95,6 +97,57 @@ public class WarehouseWebController {
         return "redirect:/warehouses/" + id;
     }
 
+    @GetMapping("/warehouses/{id}/locations/{locationId}")
+    public String locationDetail(@PathVariable UUID id, @PathVariable UUID locationId, Model model) {
+        WarehouseResponse warehouse = warehouseService.findById(id);
+        LocationResponse location = catalogService.findLocation(locationId);
+        if (!location.warehouseId().equals(warehouse.id())) {
+            throw new ResourceNotFoundException("Location", locationId);
+        }
+        model.addAttribute("currentPage", "warehouses");
+        model.addAttribute("warehouse", warehouse);
+        model.addAttribute("location", location);
+        if (!model.containsAttribute("locationEditForm")) {
+            LocationEditForm form = new LocationEditForm();
+            form.setCode(location.code());
+            form.setName(location.name());
+            model.addAttribute("locationEditForm", form);
+        }
+        return "warehouses/location-detail";
+    }
+
+    @PostMapping("/warehouses/{id}/locations/{locationId}")
+    public String updateLocation(@PathVariable UUID id, @PathVariable UUID locationId,
+                                 @Valid @ModelAttribute("locationEditForm") LocationEditForm form,
+                                 BindingResult bindingResult,
+                                 RedirectAttributes redirectAttributes,
+                                 Model model) {
+        if (bindingResult.hasErrors()) {
+            return locationDetail(id, locationId, model);
+        }
+        catalogService.updateLocation(locationId, form.getCode(), form.getName());
+        redirectAttributes.addFlashAttribute("successMessage", "Location updated.");
+        return "redirect:/warehouses/" + id + "/locations/" + locationId;
+    }
+
+    @PostMapping("/warehouses/{id}/locations/{locationId}/archive")
+    public String archiveLocation(@PathVariable UUID id, @PathVariable UUID locationId,
+                                  RedirectAttributes redirectAttributes) {
+        ensureLocationBelongsToWarehouse(id, locationId);
+        catalogService.setLocationActive(locationId, false);
+        redirectAttributes.addFlashAttribute("successMessage", "Location archived.");
+        return "redirect:/warehouses/" + id + "/locations/" + locationId;
+    }
+
+    @PostMapping("/warehouses/{id}/locations/{locationId}/restore")
+    public String restoreLocation(@PathVariable UUID id, @PathVariable UUID locationId,
+                                  RedirectAttributes redirectAttributes) {
+        ensureLocationBelongsToWarehouse(id, locationId);
+        catalogService.setLocationActive(locationId, true);
+        redirectAttributes.addFlashAttribute("successMessage", "Location restored.");
+        return "redirect:/warehouses/" + id + "/locations/" + locationId;
+    }
+
     @PostMapping("/warehouses/{id}/delete")
     public String delete(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
         warehouseService.delete(id);
@@ -109,5 +162,13 @@ public class WarehouseWebController {
         String haystack = (warehouse.code() + " " + warehouse.name() + " " + warehouse.location())
                 .toLowerCase(Locale.ROOT);
         return haystack.contains(query.toLowerCase(Locale.ROOT));
+    }
+
+    private void ensureLocationBelongsToWarehouse(UUID warehouseId, UUID locationId) {
+        WarehouseResponse warehouse = warehouseService.findById(warehouseId);
+        LocationResponse location = catalogService.findLocation(locationId);
+        if (!location.warehouseId().equals(warehouse.id())) {
+            throw new ResourceNotFoundException("Location", locationId);
+        }
     }
 }

@@ -23,13 +23,15 @@
       <div class="table-wrap" th:if="${!page.items.isEmpty()}">
         <table>
           <thead>
-          <tr><th>Code</th><th>Name</th><th>Email</th></tr>
+          <tr><th>Code</th><th>Name</th><th>Email</th><th>Status</th></tr>
           </thead>
           <tbody>
           <tr th:each="supplier : ${page.items}">
-            <td th:text="${supplier.code}"></td>
+            <td><a th:href="@{/suppliers/{id}(id=${supplier.id})}" th:text="${supplier.code}"></a></td>
             <td th:text="${supplier.name}"></td>
             <td th:text="${supplier.contactEmail} ?: '—'"></td>
+            <td><span class="badge" th:classappend="${supplier.active} ? ' badge-done' : ''"
+                      th:text="${supplier.active} ? 'Active' : 'Archived'"></span></td>
           </tr>
           </tbody>
         </table>

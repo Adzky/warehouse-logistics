@@ -48,4 +48,11 @@ public class Product {
     public String getDescription() { return description; }
     public String getUnitOfMeasure() { return unitOfMeasure; }
     public boolean isActive() { return active; }
+    public void update(String sku, String name, String description, String unitOfMeasure) {
+        this.sku = sku;
+        this.name = name;
+        this.description = description;
+        this.unitOfMeasure = unitOfMeasure;
+    }
+    public void setActive(boolean active) { this.active = active; }
 }

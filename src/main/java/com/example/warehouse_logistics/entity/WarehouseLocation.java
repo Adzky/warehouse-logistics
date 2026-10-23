@@ -64,4 +64,9 @@ public class WarehouseLocation {
     public String getName() { return name; }
     public LocationType getType() { return type; }
     public boolean isActive() { return active; }
+    public void update(String code, String name) {
+        this.code = code;
+        this.name = name;
+    }
+    public void setActive(boolean active) { this.active = active; }
 }
