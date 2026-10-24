@@ -24,6 +24,9 @@
       <a th:href="@{/movements}" th:attr="aria-current=${currentPage == 'movements'} ? 'page'">Movements</a>
       <a th:href="@{/suppliers}" th:attr="aria-current=${currentPage == 'suppliers'} ? 'page'">Suppliers</a>
     </nav>
+    <form th:action="@{/logout}" method="post">
+      <button type="submit">Sign out</button>
+    </form>
   </div>
 </header>
 <div class="flash-list" th:if="${successMessage != null or errorMessage != null}">

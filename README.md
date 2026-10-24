@@ -3,7 +3,8 @@
 A Java 21 / Spring Boot and PostgreSQL application for managing warehouse
 catalogs, location-based inventory, receiving, and outbound order fulfillment.
 The project provides a REST API and a browser UI for the core warehouse
-workflows. User authentication is not implemented yet.
+workflows. Authentication uses database-backed accounts, role-based access
+control, CSRF protection, and actor attribution for stock movements.
 
 ## Current scope
 
@@ -74,6 +75,13 @@ workflows. User authentication is not implemented yet.
    Maven. Keep local credentials out of source control. If your PostgreSQL host,
    port, database, or username differs, update the datasource settings in
    `src/main/resources/application.properties` to match.
+   On a fresh database or the first startup after enabling security, set
+   `BOOTSTRAP_ADMIN_USERNAME` and
+   `BOOTSTRAP_ADMIN_PASSWORD` in the application process environment before
+   starting it. The initial administrator password must be at least 12
+   characters and at most 72 UTF-8 bytes. The account is created only if its
+   username does not already exist; changing the environment variable later
+   does not reset its password.
 5. Verify the database exists and that the configured application credentials
    can connect. For the defaults:
 
@@ -100,6 +108,22 @@ From PowerShell in the repository root:
 
 The application listens on port `8080` by default. Open
 [http://localhost:8080](http://localhost:8080) for the warehouse dashboard.
+Sign in at `/login`. An administrator can list and create accounts with
+`GET /api/users` and `POST /api/users`; account creation requires an
+administrator session, a CSRF token, and a JSON body containing `username`,
+`password` (12-64 characters and at most 72 UTF-8 bytes), and a role (`ADMINISTRATOR`,
+`WAREHOUSE_MANAGER`, `RECEIVER`, or `PICKER`). Passwords are stored as BCrypt
+hashes and are never included in account responses.
+
+Administrators and warehouse managers can manage catalogs, warehouses,
+inventory, receipts, and orders. Receivers can view records and process
+receipts/stock receiving. Pickers can view records and pick, pack, and ship
+orders; they cannot create or cancel orders. All browser and API state changes
+require CSRF protection. Stock movement records retain the username of the
+authenticated actor and the movement timestamp.
+When serving the application over HTTPS (including through a TLS-terminating
+proxy), set `SESSION_COOKIE_SECURE=true` so browsers send the session cookie
+only over secure connections.
 
 ## Run tests
 

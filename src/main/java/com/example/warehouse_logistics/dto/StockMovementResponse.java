@@ -10,7 +10,7 @@ public record StockMovementResponse(
         UUID id, UUID productId, String sku, MovementType type, long quantity,
         UUID sourceLocationId, String sourceLocationCode,
         UUID destinationLocationId, String destinationLocationCode,
-        String reference, Instant occurredAt
+        String reference, String performedBy, Instant occurredAt
 ) {
     public static StockMovementResponse from(StockMovement movement) {
         return new StockMovementResponse(
@@ -24,6 +24,7 @@ public record StockMovementResponse(
                 movement.getDestinationLocation() == null ? null : movement.getDestinationLocation().getId(),
                 movement.getDestinationLocation() == null ? null : movement.getDestinationLocation().getCode(),
                 movement.getReference(),
+                movement.getPerformedBy(),
                 movement.getOccurredAt()
         );
     }
