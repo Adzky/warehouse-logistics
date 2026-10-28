@@ -29,13 +29,16 @@ public class InventoryService {
     private final WarehouseLocationRepository locations;
     private final InventoryBalanceRepository balances;
     private final StockMovementRepository movements;
+    private final CurrentActor currentActor;
 
     public InventoryService(ProductRepository products, WarehouseLocationRepository locations,
-                            InventoryBalanceRepository balances, StockMovementRepository movements) {
+                            InventoryBalanceRepository balances, StockMovementRepository movements,
+                            CurrentActor currentActor) {
         this.products = products;
         this.locations = locations;
         this.balances = balances;
         this.movements = movements;
+        this.currentActor = currentActor;
     }
 
     @Transactional(readOnly = true)
@@ -60,7 +63,7 @@ public class InventoryService {
         InventoryBalance balance = balanceForUpdate(product, location);
         balance.receive(request.quantity());
         movements.save(new StockMovement(product, null, location, MovementType.RECEIVE,
-                request.quantity(), request.reference()));
+                request.quantity(), request.reference(), currentActor.username()));
         return InventoryResponse.from(balance);
     }
 
@@ -77,7 +80,7 @@ public class InventoryService {
         from.adjust(-request.quantity());
         to.receive(request.quantity());
         movements.save(new StockMovement(product, source, destination, MovementType.MOVE,
-                request.quantity(), request.reference()));
+                request.quantity(), request.reference(), currentActor.username()));
         return List.of(InventoryResponse.from(from), InventoryResponse.from(to));
     }
 
@@ -97,7 +100,7 @@ public class InventoryService {
                 request.delta() < 0 ? location : null,
                 request.delta() > 0 ? location : null,
                 request.delta() > 0 ? MovementType.ADJUST_IN : MovementType.ADJUST_OUT,
-                Math.abs(request.delta()), request.reference()));
+                Math.abs(request.delta()), request.reference(), currentActor.username()));
         return InventoryResponse.from(balance);
     }
 
@@ -117,7 +120,7 @@ public class InventoryService {
         InventoryBalance balance = balanceForUpdate(product, location);
         balance.reserve(quantity);
         movements.save(new StockMovement(product, null, location, MovementType.RESERVE,
-                quantity, reference));
+                quantity, reference, currentActor.username()));
     }
 
     @Transactional
@@ -127,7 +130,7 @@ public class InventoryService {
         InventoryBalance balance = balanceForUpdate(product, location);
         balance.pick(quantity);
         movements.save(new StockMovement(product, location, null, MovementType.PICK,
-                quantity, reference));
+                quantity, reference, currentActor.username()));
     }
 
     @Transactional
@@ -137,7 +140,7 @@ public class InventoryService {
         InventoryBalance balance = balanceForUpdate(product, location);
         balance.ship(quantity);
         movements.save(new StockMovement(product, location, null, MovementType.SHIP,
-                quantity, reference));
+                quantity, reference, currentActor.username()));
     }
 
     @Transactional
@@ -147,7 +150,7 @@ public class InventoryService {
         InventoryBalance balance = balanceForUpdate(product, location);
         balance.release(quantity);
         movements.save(new StockMovement(product, location, null, MovementType.RELEASE,
-                quantity, reference));
+                quantity, reference, currentActor.username()));
     }
 
     private Product lockProduct(UUID productId) {

@@ -45,6 +45,9 @@ public class StockMovement {
     @Column(length = 120)
     private String reference;
 
+    @Column(name = "performed_by", nullable = false, length = 64)
+    private String performedBy;
+
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt;
 
@@ -53,13 +56,14 @@ public class StockMovement {
 
     public StockMovement(Product product, WarehouseLocation sourceLocation,
                          WarehouseLocation destinationLocation, MovementType type,
-                         long quantity, String reference) {
+                         long quantity, String reference, String performedBy) {
         this.product = product;
         this.sourceLocation = sourceLocation;
         this.destinationLocation = destinationLocation;
         this.type = type;
         this.quantity = quantity;
         this.reference = reference;
+        this.performedBy = performedBy;
         this.occurredAt = Instant.now();
     }
 
@@ -70,5 +74,6 @@ public class StockMovement {
     public MovementType getType() { return type; }
     public long getQuantity() { return quantity; }
     public String getReference() { return reference; }
+    public String getPerformedBy() { return performedBy; }
     public Instant getOccurredAt() { return occurredAt; }
 }

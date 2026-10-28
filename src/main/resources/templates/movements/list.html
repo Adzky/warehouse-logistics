@@ -44,12 +44,13 @@
       <table>
         <thead>
         <tr>
-          <th>When</th><th>Type</th><th>SKU</th><th>Qty</th><th>From</th><th>To</th><th>Reference</th>
+          <th>When</th><th>By</th><th>Type</th><th>SKU</th><th>Qty</th><th>From</th><th>To</th><th>Reference</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="movement : ${page.items}">
           <td th:text="${#temporals.formatISO(movement.occurredAt)}"></td>
+          <td th:text="${movement.performedBy}"></td>
           <td><span class="badge" th:text="${movement.type}"></span></td>
           <td th:text="${movement.sku}"></td>
           <td th:text="${movement.quantity}"></td>
