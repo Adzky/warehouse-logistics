@@ -16,7 +16,7 @@
       <form class="filters toolbar" method="get" th:action="@{/warehouses}" role="search">
         <div>
           <label for="q">Search</label>
-          <input id="q" name="q" th:value="${q}" placeholder="Code, name, or city">
+          <input id="q" name="q" th:value="${q}" placeholder="Code, name, or address">
         </div>
         <div style="align-self:end">
           <button type="submit">Filter</button>
@@ -25,7 +25,7 @@
       <div class="table-wrap" th:if="${!page.items.isEmpty()}">
         <table>
           <thead>
-          <tr><th>Code</th><th>Name</th><th>Location</th></tr>
+          <tr><th>Code</th><th>Name</th><th>Address</th></tr>
           </thead>
           <tbody>
           <tr th:each="warehouse : ${page.items}">
@@ -54,7 +54,7 @@
           <span class="field-error" th:errors="*{name}"></span>
         </p>
         <p>
-          <label for="location">Location</label>
+          <label for="location">Address</label>
           <input id="location" th:field="*{location}">
           <span class="field-error" th:errors="*{location}"></span>
         </p>

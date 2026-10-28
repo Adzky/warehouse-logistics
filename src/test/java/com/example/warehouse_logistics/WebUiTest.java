@@ -70,7 +70,24 @@ class WebUiTest {
         mockMvc.perform(get("/warehouses").param("q", "WH-UI-01"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("WH-UI-01")))
-                .andExpect(content().string(containsString("UI Warehouse")));
+                .andExpect(content().string(containsString("UI Warehouse")))
+                .andExpect(content().string(containsString(">Address</label>")))
+                .andExpect(content().string(containsString("<th>Address</th>")));
+    }
+
+    @Test
+    void newlyCreatedWarehouseHasSelectableDefaultLocation() throws Exception {
+        var warehouse = warehouseService.create(new WarehouseRequest(
+                "WH-UI-LOCATION", "Location Warehouse", "Austin, TX"));
+
+        var locations = catalogService.findLocations(warehouse.id());
+        org.junit.jupiter.api.Assertions.assertEquals(1, locations.size());
+        org.junit.jupiter.api.Assertions.assertEquals("MAIN", locations.getFirst().code());
+        org.junit.jupiter.api.Assertions.assertEquals(LocationType.STORAGE, locations.getFirst().type());
+
+        mockMvc.perform(get("/inventory"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("WH-UI-LOCATION / MAIN")));
     }
 
     @Test

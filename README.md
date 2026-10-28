@@ -7,7 +7,9 @@ workflows. User authentication is not implemented yet.
 
 ## Current scope
 
-- Warehouse records and warehouse locations.
+- Warehouse records and warehouse locations. Each new warehouse starts with a
+  root `MAIN` storage location for receiving and inventory; additional zones,
+  bins, and operational locations can be created as needed.
 - Root locations for zones and operational areas; bins nested under zones.
 - Products with unique SKUs and suppliers associated with inbound receipts.
 - Inventory balances by product and location: on-hand, reserved, available,
