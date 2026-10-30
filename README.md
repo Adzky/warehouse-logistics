@@ -1,6 +1,6 @@
 # Warehouse Logistics
 
-A Java 21 / Spring Boot and PostgreSQL application for managing warehouse
+A Java 25 / Spring Boot and PostgreSQL application for managing warehouse
 catalogs, location-based inventory, receiving, and outbound order fulfillment.
 The project provides a REST API and a browser UI for the core warehouse
 workflows. Authentication uses database-backed accounts, role-based access
@@ -24,7 +24,7 @@ control, CSRF protection, and actor attribution for stock movements.
 
 ## Technology
 
-- Java 21
+- Java 25 (LTS)
 - Spring Boot 4
 - Spring MVC, Thymeleaf, Spring Data JPA, Jakarta Validation
 - PostgreSQL
@@ -33,7 +33,7 @@ control, CSRF protection, and actor attribution for stock movements.
 
 ## Prerequisites
 
-- JDK 21
+- JDK 25 (LTS)
 - PostgreSQL running locally
 - A PostgreSQL database named `warehouse_logistics`, or an equivalent database
   configured in `src/main/resources/application.properties`
@@ -65,9 +65,9 @@ control, CSRF protection, and actor attribution for stock movements.
    configured application role can connect and create tables in its schema.
 4. Configure the application to use the database. The default URL is
    `jdbc:postgresql://localhost:5432/warehouse_logistics`, and the default
-   username is `postgres`. If using the local profile, create
-   `src/main/resources/application-local.properties` and set the password
-   variable expected by the datasource configuration:
+   username is `postgres`. If using the local profile, create an ignored
+   `application-local.properties` file in the repository root and set the
+   password variable expected by the datasource configuration:
 
    ```properties
    DB_PASSWORD=your-local-postgres-password
@@ -127,6 +127,74 @@ When serving the application over HTTPS (including through a TLS-terminating
 proxy), set `SESSION_COOKIE_SECURE=true` so browsers send the session cookie
 only over secure connections.
 
+## Health, logs, and deployment
+
+The application exposes only `/actuator/health` over HTTP. It is intentionally
+public for container health checks; component details are not exposed. The
+database health indicator makes the endpoint report `DOWN` when PostgreSQL is
+unavailable. Application logs are emitted as Logstash-compatible JSON on
+standard output.
+
+For a repeatable local container deployment:
+
+1. Copy `.env.example` to `.env` and replace every placeholder. In PowerShell:
+
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+   Use unique, strong values for the database and bootstrap administrator
+   credentials.
+   Keep `.env` private; it is ignored by Git and excluded from Docker builds.
+2. Start the app and PostgreSQL:
+
+   ```powershell
+   docker compose up --build -d
+   docker compose ps
+   docker compose logs -f app
+   ```
+
+3. Open `http://localhost:8080` and sign in with the bootstrap administrator
+   credentials in `.env`. The bootstrap account is created only if its
+   username does not already exist; changing `.env` does not reset its
+   password.
+4. Stop the services with `docker compose down`. The named PostgreSQL volume
+   remains intact. Do not use `docker compose down -v` unless you intentionally
+   want to delete the database.
+
+This Compose setup is for local development, not a hardened public production
+deployment. For production, use managed secret storage, private database
+networking, TLS, restricted inbound access, and a tested backup/restore process.
+The image runs as a non-root user and does not include local profile properties.
+
+### Database backups and migrations
+
+Take and verify a database backup before upgrades or risky operations. For the
+Compose database shown above, with PostgreSQL client tools installed on the host,
+create a custom-format backup:
+
+```powershell
+pg_dump -h localhost -p 5432 -U warehouse_app -d warehouse_logistics -W -Fc `
+  -f warehouse-logistics.dump
+```
+
+Restore into a separately created, empty database after stopping the app:
+
+```powershell
+pg_restore -h localhost -p 5432 -U warehouse_app -d warehouse_logistics_restore `
+  -W --no-owner --no-acl warehouse-logistics.dump
+```
+
+Keep backups encrypted and outside the app host, and periodically test restores.
+`pg_dump` backs up one database; preserve database roles/configuration separately.
+
+Flyway applies pending migrations at application startup. Give each new migration
+a unique, increasing version (for example `V8__describe_change.sql`), and never
+edit a migration that has already been applied in a shared environment. Make
+schema changes with forward-only migrations, test them against a disposable
+database, and back up production data before deploying. Hibernate is configured
+to validate, not create or update, the schema.
+
 ## Run tests
 
 ```powershell
@@ -138,6 +206,9 @@ They exercise warehouse CRUD responses, request validation, duplicate codes,
 partial receiving, inventory reservation and fulfillment, location transfers,
 stock adjustment, movement history, and rollback behavior when an operation is
 rejected.
+The inventory domain has unit tests for reservation, adjustment, and overflow
+rules. A concurrent-reservation integration test verifies that two simultaneous
+requests cannot reserve more stock than is available.
 
 The workflow tests use a transaction that rolls back test data when each test
 finishes. The tests still require a reachable PostgreSQL database and apply

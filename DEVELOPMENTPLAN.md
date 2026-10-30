@@ -2,7 +2,7 @@
 
 ## Starting point
 
-This repository is a small Java 21 / Spring Boot application with PostgreSQL, Spring Data JPA, Flyway, validation, and web support configured in `pom.xml`. It already has a basic warehouse CRUD backend:
+This repository is a small Java 25 / Spring Boot application with PostgreSQL, Spring Data JPA, Flyway, validation, and web support configured in `pom.xml`. It already has a basic warehouse CRUD backend:
 
 - A `Warehouse` entity with an ID, code, name, and location in `Warehouse.java`.
 - A repository, service, and REST controller in `WarehouseRepository.java`, `WarehouseService.java`, and `WarehouseController.java`.
@@ -18,7 +18,7 @@ Build a **Java-first web application** using Spring Boot for the backend and Spr
 
 ### 1. Stabilize the foundation
 
-- Confirm local development and test setup for Java 21, Maven, and PostgreSQL.
+- Confirm local development and test setup for Java 25, Maven, and PostgreSQL.
 - Resolve the create-endpoint status mismatch and define consistent API behavior for success and error responses.
 - Add request/response DTOs so HTTP input is not bound directly to JPA entities.
 - Add validation for required fields and formats; return clear, consistent validation and not-found errors.
@@ -77,12 +77,14 @@ Add search, filtering, pagination, form validation feedback, and confirmation fo
 
 ### 5. Expand testing and operational readiness
 
+**Status: Implemented for the current warehouse MVP.**
+
 - Unit-test service rules such as duplicate warehouse codes, stock reservations, and invalid movements.
 - Add integration tests for repositories, migrations, and transaction behavior.
 - Add MVC tests for authorization, validation, response codes, and core workflows.
 - Test concurrency-sensitive inventory updates and failure/rollback behavior.
 - Add structured logging, health checks, and useful error reporting.
-- Package the app for repeatable local or container-based deployment and document backup, configuration, and migration practices.
+- Package the app for repeatable local or container-based deployment and document backup, configuration, and migration practices. The included Compose setup is for local development; production deployment still requires environment-specific hardening and operations.
 
 **Outcome:** The app can be tested and operated beyond a developer’s local machine.
 

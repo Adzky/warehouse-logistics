@@ -49,6 +49,14 @@ class SecurityAndAuditTest {
     }
 
     @Test
+    void healthEndpointIsAvailableWithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.components").doesNotExist());
+    }
+
+    @Test
     void administratorCanCreateAccountsAndTheyCanSignIn() throws Exception {
         mockMvc.perform(post("/api/users")
                         .with(user("admin").roles("ADMINISTRATOR"))
